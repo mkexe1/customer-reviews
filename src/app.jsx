@@ -27,8 +27,8 @@ const db = getFirestore(app);
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'moderated-review-app';
 
 export default function App() {
-  const [user, setUser] = useState(null);
-  const [reviews, setReviews] = useState([]);
+  const [user, setUser] = useState<any>(null);
+  const [reviews, setReviews] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isModerator, setIsModerator] = useState(false);
@@ -36,12 +36,10 @@ export default function App() {
   const [passInput, setPassInput] = useState('');
   const [passError, setPassError] = useState(false);
   
-  // Notification & Confirmation State
   const [showNotification, setShowNotification] = useState(false);
-  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   
-  // Admin Reply State
-  const [replyingTo, setReplyingTo] = useState(null);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [adminReplyText, setAdminReplyText] = useState('');
   
   const ADMIN_PASSWORD = "1234"; 
@@ -83,7 +81,7 @@ export default function App() {
         id: doc.id,
         ...doc.data()
       }));
-      const sorted = data.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+      const sorted = data.sort((a: any, b: any) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
       setReviews(sorted);
       setLoading(false);
     }, (error) => {
@@ -94,14 +92,13 @@ export default function App() {
     return () => unsubscribe();
   }, [user]);
 
-  // --- Statistics Logic ---
   const verifiedReviews = reviews.filter(r => r.isVerified);
   const totalReviews = verifiedReviews.length;
   const averageRating = totalReviews > 0 
     ? (verifiedReviews.reduce((acc, curr) => acc + curr.rating, 0) / totalReviews).toFixed(1)
     : 0;
 
-  const handleSubmitReview = async (e) => {
+  const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !formData.comment.trim()) return;
 
@@ -126,7 +123,7 @@ export default function App() {
     }
   };
 
-  const handleVerify = async (reviewId) => {
+  const handleVerify = async (reviewId: string) => {
     if (!isModerator) return;
     const reviewRef = doc(db, 'artifacts', appId, 'public', 'data', 'reviews', reviewId);
     await updateDoc(reviewRef, { isVerified: true });
@@ -139,7 +136,7 @@ export default function App() {
     setDeleteConfirmId(null);
   };
 
-  const handlePostReply = async (reviewId) => {
+  const handlePostReply = async (reviewId: string) => {
     if (!isModerator || !adminReplyText.trim()) return;
     const reviewRef = doc(db, 'artifacts', appId, 'public', 'data', 'reviews', reviewId);
     await updateDoc(reviewRef, { 
@@ -150,7 +147,7 @@ export default function App() {
     setAdminReplyText('');
   };
 
-  const handleAdminAuth = (e) => {
+  const handleAdminAuth = (e: React.FormEvent) => {
     e.preventDefault();
     if (passInput === ADMIN_PASSWORD) {
       setIsModerator(true);
@@ -162,7 +159,7 @@ export default function App() {
     }
   };
 
-  const StarRating = ({ rating, interactive = false, setRating = null, size = 16 }) => (
+  const StarRating = ({ rating, interactive = false, setRating = null, size = 16 }: any) => (
     <div className="flex gap-1 items-center">
       {[1, 2, 3, 4, 5].map((star) => (
         <Star
@@ -171,7 +168,7 @@ export default function App() {
           className={`${
             star <= Math.round(rating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
           } ${interactive ? 'cursor-pointer hover:scale-110 transition-transform' : ''}`}
-          onClick={() => interactive && setRating(star)}
+          onClick={() => interactive && setRating && setRating(star)}
         />
       ))}
     </div>
@@ -183,7 +180,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-20">
-      {/* Toast Notification */}
       {showNotification && (
         <div className="fixed bottom-6 right-6 left-6 md:left-auto md:w-96 z-50 animate-in slide-in-from-bottom-4 duration-300">
           <div className="bg-indigo-600 text-white p-4 rounded-2xl shadow-2xl flex items-start gap-3 border border-indigo-400">
@@ -201,7 +197,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
       {deleteConfirmId && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
           <div className="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6 text-center animate-in zoom-in-95 duration-200">
@@ -258,12 +253,10 @@ export default function App() {
         </div>
       </nav>
 
-      {/* Hero Stats Section */}
       <div className="bg-white border-b border-slate-200">
         <div className="max-w-4xl mx-auto px-4 py-12 text-center">
           <h1 className="text-4xl font-black mb-6 text-slate-900 tracking-tight">Customer Reviews</h1>
           
-          {/* Summary Dashboard */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-12 bg-slate-50 rounded-3xl p-6 border border-slate-100 w-fit mx-auto shadow-sm">
             <div className="text-center sm:text-left px-4">
               <div className="text-3xl font-black text-slate-900">{totalReviews}</div>
@@ -403,7 +396,6 @@ export default function App() {
         )}
       </main>
 
-      {/* Review Submit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
           <div className="bg-white w-full max-w-md rounded-3xl shadow-xl p-8 animate-in zoom-in-95 duration-200">
@@ -411,7 +403,7 @@ export default function App() {
             <form onSubmit={handleSubmitReview} className="space-y-4">
               <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                 <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Your Rating</label>
-                <StarRating rating={formData.rating} interactive={true} setRating={(v) => setFormData({...formData, rating: v})} />
+                <StarRating rating={formData.rating} interactive={true} setRating={(v: number) => setFormData({...formData, rating: v})} />
               </div>
               <div>
                 <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Display Name</label>
@@ -429,7 +421,7 @@ export default function App() {
                 <textarea 
                   placeholder="Tell us about your experience..."
                   required
-                  rows="3"
+                  rows={3}
                   className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50"
                   value={formData.comment}
                   onChange={(e) => setFormData({...formData, comment: e.target.value})}
@@ -448,7 +440,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Admin Auth Modal */}
       {isPassModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
           <div className="bg-white w-full max-w-xs rounded-2xl shadow-2xl p-6 text-center animate-in zoom-in-95 duration-200">
